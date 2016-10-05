@@ -15,6 +15,7 @@ from supremm.summarize import Summarize
 from supremm.plugin import loadplugins, loadpreprocessors
 from supremm.scripthelpers import parsetime
 from supremm.scripthelpers import setuplogger
+import MySQLdb
 
 import sys
 import os
@@ -191,6 +192,9 @@ def summarizejob(job, conf, resconf, plugins, preprocs, m, dblog, opts):
 
         dblog.markasdone(job, success or force_success, time.time() - mergestart)
 
+    except MySQLdb.Error as sqlerror:
+        logging.error("MySQL error for job %s %s. Error: %s %s", job.job_id, job.jobdir, str(sqlerror), traceback.format_exc())
+        raise sqlerror
     except Exception as e:
         logging.error("Failure for job %s %s. Error: %s %s", job.job_id, job.jobdir, str(e), traceback.format_exc())
 
