@@ -44,8 +44,9 @@ class XDMoDAcct(Accounting):
                 modw.account aa ON jf.account_id = aa.id
             WHERE
                 jf.resource_id = %s 
-                AND NOT (jf.nodecount > 1 AND jf.wallduration < 500)
+                AND NOT (jf.nodecount > 1 AND jf.wallduration < 300)
                 AND jf.nodecount < 10000
+                AND jf.wallduration < 176400
               """
 
         self.hostquery = """SELECT
