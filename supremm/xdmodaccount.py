@@ -65,10 +65,8 @@ class XDMoDAcct(Accounting):
                                (j.start_time_ts BETWEEN a.start_time_ts AND a.end_time_ts)
                                OR (j.end_time_ts BETWEEN a.start_time_ts AND a.end_time_ts)
                                OR (j.start_time_ts < a.start_time_ts and j.end_time_ts > a.end_time_ts)
-                               OR (CAST(j.local_job_id_raw AS CHAR) = a.jobid)
                            )
-                           AND (a.jobid = CAST(j.local_job_id_raw AS CHAR) OR a.jobid IS NULL)
-                       GROUP BY 1, 2 ORDER BY 1 ASC, a.start_time_ts ASC """
+                       GROUP BY 1, 2 ORDER BY 1 ASC, a.start_time_ts ASC"""
 
         self.dbsettings = config.getsection("datawarehouse")
         self.con = None
