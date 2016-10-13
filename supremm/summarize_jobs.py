@@ -214,6 +214,12 @@ def processjobs(config, opts, procid):
     plugins = loadplugins()
     logging.debug("Loaded %s plugins", len(plugins))
 
+    # Get this from Conf eventually
+    pluginopts = {}
+    pluginopts['perfctrwidth'] = 48
+
+    plugins.setoptions(pluginopts)
+
     for r, resconf in config.resourceconfigs():
         if opts['resource'] == None or opts['resource'] == r or opts['resource'] == str(resconf['resource_id']):
             logging.info("Processing resource %s", r)

@@ -69,10 +69,19 @@ class NodeMetadata(object):
 class Plugin(object):
     """ abstract base class describing the plugin interface """
     __metaclass__ = ABCMeta
+    __options = None
 
     def __init__(self, job):
         self._job = job
         self._status = "uninitialized"
+
+    @staticmethod
+    def setoptions(opts):
+        __options = opts
+
+    @staticmethod
+    def getoptions():
+        return __options
 
     @property
     def status(self):
