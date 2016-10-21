@@ -44,6 +44,9 @@ class XDMoDAcct(Accounting):
                 modw.account aa ON jf.account_id = aa.id
             WHERE
                 jf.resource_id = %s 
+                AND NOT (jf.nodecount > 1 AND jf.wallduration < 300)
+                AND jf.nodecount < 10000
+                AND jf.wallduration < 176400
               """
 
         self.hostquery = """SELECT
@@ -62,9 +65,7 @@ class XDMoDAcct(Accounting):
                                (j.start_time_ts BETWEEN a.start_time_ts AND a.end_time_ts)
                                OR (j.end_time_ts BETWEEN a.start_time_ts AND a.end_time_ts)
                                OR (j.start_time_ts < a.start_time_ts and j.end_time_ts > a.end_time_ts)
-                               OR (CAST(j.local_job_id_raw AS CHAR) = a.jobid)
                            )
-                           AND (a.jobid = CAST(j.local_job_id_raw AS CHAR) OR a.jobid IS NULL)
                        GROUP BY 1, 2 ORDER BY 1 ASC, a.start_time_ts ASC """
 
         self.dbsettings = config.getsection("datawarehouse")
@@ -123,7 +124,11 @@ class XDMoDAcct(Accounting):
         job_selector = " AND( " + job_selector + " )"
         query += job_selector
 
-        query += " ORDER BY jf.nodecount DESC"
+        if self._nthreads != None and self._threadidx != None:
+            query += " AND (CRC32(jf.local_job_id_raw) %% %s) = %s"
+            data = data + (self._nthreads, self._threadidx)
+
+        query += " ORDER BY jf.end_time_ts ASC"
 
         for job in  self.executequery(query, data):
             yield job
@@ -223,7 +228,7 @@ class XDMoDArchiveCache(ArchiveCache):
             logging.debug("Ignoring archive for host %s", hostname)
             return
 
-        query = """INSERT INTO modw_supremm.archive (hostid, filename, start_time_ts, end_time_ts, jobid) 
+        query = """INSERT INTO modw_supremm.archive_staging (hostid, filename, start_time_ts, end_time_ts, jobid) 
                        VALUES( (SELECT id FROM modw.hosts WHERE hostname = %s),%s,%s,%s,%s) 
                        ON DUPLICATE KEY UPDATE start_time_ts=%s, end_time_ts=%s"""
 
