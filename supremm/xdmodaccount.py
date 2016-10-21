@@ -47,6 +47,7 @@ class XDMoDAcct(Accounting):
                 AND NOT (jf.nodecount > 1 AND jf.wallduration < 300)
                 AND jf.nodecount < 10000
                 AND jf.wallduration < 176400
+                AND jf.wallduration > 180
               """
 
         self.hostquery = """SELECT
@@ -120,9 +121,10 @@ class XDMoDAcct(Accounting):
                 pass
 
         # Add a "AND ( cond1 OR cond2 ...) clause
-        job_selector=" OR ".join(process_selectors)
-        job_selector = " AND( " + job_selector + " )"
-        query += job_selector
+        if len(process_selectors) > 0:
+            job_selector=" OR ".join(process_selectors)
+            job_selector = " AND( " + job_selector + " )"
+            query += job_selector
 
         if self._nthreads != None and self._threadidx != None:
             query += " AND (CRC32(jf.local_job_id_raw) %% %s) = %s"
@@ -164,6 +166,9 @@ class XDMoDAcct(Accounting):
 
         cur = self.con.cursor()
         cur.execute(query, data)
+
+        rows_returned=cur.rowcount
+        logging.info("Processing %s jobs", rows_returned)
 
         for record in cur:
 
